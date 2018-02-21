@@ -14,8 +14,12 @@ const statusCodes = {
 
 module.exports.Request = class Request {
 	constructor(s) {
-		this.method = s.split(' ')[0];
+		this.method = s.split(' ')[0].toUpperCase();
 		this.path = s.split(' ')[1];
+
+		if (this.path.length > 1 && this.path.slice(-1) === '/') {
+			this.path = this.path.slice(0, -1);
+		}
 
 		const headers = {};
 
@@ -104,16 +108,17 @@ module.exports.Response = class Response {
 	sendFile(fileName) {
 		const util = require('./webutils.js');
 		const path = require('path');
+		const fs = require('fs');
 
 		const filePath = path.join(__dirname, '..', 'public', fileName);
 		const ext = util.getExtension(fileName);
-		const contentType  = getMIME(ext);
+		const contentType = util.getMIME(ext);
 
-		if (['html', 'css', 'txt'].includes(extension)) {
+		if (['html', 'css', 'txt'].includes(ext)) {
 			fs.readFile(filePath, 'utf8', (error, data) => { this.handleRead(contentType, error, data); });
 		}
 
-		if (['gif', 'png', 'jpeg', 'bmp', 'webp'].includes(extension)) {
+		if (['gif', 'png', 'jpg', 'jpeg', 'bmp', 'webp'].includes(ext)) {
 			fs.readFile(filePath, (error, data) => { this.handleRead(contentType, error, data); });
 		}
 	}
@@ -154,24 +159,25 @@ module.exports.App = class App {
 
 	handleRequestData(sock, binaryData) {
 		const strData = binaryData + '';
-		const req = new Request(strData);
-		const res = new Response(sock);
+		const req = new module.exports.Request(strData);
+		const res = new module.exports.Response(sock);
 
 		sock.on('end', this.logResponse.bind(this, req, res));
 
 		if (!req.headers.hasOwnProperty('Host')) {
-			return req.send(400, 'Invalid request.');
+			return res.send(400, 'Invalid request.');
 		}
 
-		if (this.routes.hasOwnProperty([`${req.method} ${req.path}`])) {
+		if (this.routes.hasOwnProperty(`${req.method} ${req.path}`)) {
 			this.routes[`${req.method} ${req.path}`](req, res);
 			return;
 		} else {
-			return req.send(404, 'Resource could not be found.');
+			return res.send(404, 'Resource could not be found.');
 		}
 	}
 
 	logResponse(req, res) {
-		console.log(`${req.toString()}\r\n${res.toString()}\r\n`);
+		// console.log(`${req.toString()}\r\n${res.toString()}\r\n`);
+		console.log(req.toString());
 	}
 }

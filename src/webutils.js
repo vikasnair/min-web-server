@@ -10,7 +10,7 @@ module.exports.getExtension = (fileName) => {
 module.exports.sendTextFile = (fileName, sock, isGET) => {
 	const fs = require('fs');
 	const extension = this.getExtension(fileName);
-	const contentType = getMIME(extension);
+	const contentType = this.getMIME(extension);
 
 	if (['gif', 'png', 'jpeg', 'bmp', 'webp'].includes(extension)) {
 		sock.write(this.createResponse('406 Not Acceptable', 'text/plain', 'Server only accepts text files for method \'sendTextFile\'.'));
@@ -39,7 +39,7 @@ module.exports.sendTextFile = (fileName, sock, isGET) => {
 module.exports.sendImage = (fileName, sock, isGET) => {
 	const fs = require('fs');
 	const extension = this.getExtension(fileName);
-	const contentType = getMIME(extension);
+	const contentType = this.getMIME(extension);
 
 	if (['html', 'css', 'txt'].includes(extension)) {
 		sock.write(this.createResponse('406 Not Acceptable', 'text/plain', 'Server only accepts image files for method \'sendImage\'.'));
@@ -62,7 +62,7 @@ module.exports.sendImage = (fileName, sock, isGET) => {
 	});
 }
 
-module.exports.createRedirect = function(newFile, sock, isGET) {
+module.exports.createRedirect = (newFile, sock, isGET) => {
 	sock.write(`HTTP/1.1 301 Moved Permanently\r\nLocation: ${newFile}\r\n\r\n`);
 }
 
@@ -70,7 +70,7 @@ module.exports.createResponse = (statusCode, contentType, dataMessage='') => {
 	return `HTTP/1.1 ${statusCode}\r\nContent-Type: ${contentType}\r\n\r\n${dataMessage}`;
 }
 
-function getMIME(extension) {
+module.exports.getMIME = (extension) => {
 	const map = {
 		'html': 'text/html',
 		'css': 'text/css',
@@ -78,6 +78,7 @@ function getMIME(extension) {
 		'gif': 'image/gif',
 		'png': 'image/png',
 		'jpeg': 'image/jpeg',
+		'jpg' : 'image/jpeg',
 		'bmp': 'image/bmp',
 		'webp': 'image/webp',
 	};
