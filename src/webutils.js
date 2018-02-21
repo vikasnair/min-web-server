@@ -1,56 +1,73 @@
 /* webutils.js */
 // Vikas was here!
 
+const path = require('path');
+
 module.exports.getExtension = (fileName) => {
 	return fileName.split('.').length > 1 ? fileName.split('.').pop().toLowerCase() : '';
 }
 
-module.exports.sendTextFile = (fileName, sock) => {
+module.exports.sendTextFile = (fileName, sock, isGET) => {
 	const fs = require('fs');
 	const extension = this.getExtension(fileName);
 	const contentType = getMIME(extension);
 
-	if (['gif', 'png', 'jpeg', 'bmp', 'web'].includes(extension)) {
-		this.generateResponse(sock, '406: Not Acceptable', contentType, 'Server only accepts text files for method \'sendTextFile\'.');
+	if (['gif', 'png', 'jpeg', 'bmp', 'webp'].includes(extension)) {
+		sock.write(this.createResponse('406 Not Acceptable', 'text/plain', 'Server only accepts text files for method \'sendTextFile\'.'));
 		sock.end();
 		return;
 	}
 
-	fs.readFile(__dirname + "../public/" + fileName, 'utf8', (error, data) => {
+	// TODO: check if path to file exists, else 404
+
+	fs.readFile(path.join(__dirname, '..', 'public', fileName), 'utf8', (error, data) => {
 		if (error) {
-			this.generateResponse(sock, '500: Internal Server Error', contentType, 'Server encountered error reading file.');
+			console.log(__dirname + "/public/" + fileName);
+			sock.write(this.createResponse('500 Internal Server Error', 'text/plain', 'Server encountered error reading file.'));
 		} else {
-			this.generateResponse(sock, '200: OK', contentType, data);
+			sock.write(this.createResponse('200 OK', contentType));
+
+			if (isGET) {
+				sock.write(data);
+			}
 		}
 
 		sock.end();
 	});
 }
 
-module.exports.sendImage = (fileName, sock) => {
+module.exports.sendImage = (fileName, sock, isGET) => {
 	const fs = require('fs');
 	const extension = this.getExtension(fileName);
 	const contentType = getMIME(extension);
 
 	if (['html', 'css', 'txt'].includes(extension)) {
-		this.generateResponse(sock, '406: Not Acceptable', contentType, 'Server only accepts image files for method \'sendImage\'.');
+		sock.write(this.createResponse('406 Not Acceptable', 'text/plain', 'Server only accepts image files for method \'sendImage\'.'));
+		sock.end();
 		return;
 	}
 
-	fs.readFile(__dirname + "../public/" + fileName, (error, data) => {
+	fs.readFile(path.join(__dirname, '..', 'public', fileName), (error, data) => {
 		if (error) {
-			this.generateResponse(sock, '500: Internal Server Error', contentType, 'Server encountered error reading file.');
+			sock.write(this.createResponse('500 Internal Server Error', 'text/plain', 'Server encountered error reading file.'));
 		} else {
-			this.generateResponse(sock, '200: OK', contentType);
-			sock.write(data);
+			sock.write(this.createResponse('200 OK', contentType));
+
+			if (isGET) {
+				sock.write(data);
+			}
 		}
 
 		sock.end();
 	});
 }
 
-function generateResponse(sock, statusCode, contentType, dataMessage = '') {
-	sock.write('HTTP/1.1 ' + statusCode + '\r\n' + 'Content-Type: ' + contentType + '\r\n\r\n' + dataMessage);
+module.exports.createRedirect = function(newFile, sock, isGET) {
+	sock.write(`HTTP/1.1 301 Moved Permanently\r\nLocation: ${newFile}\r\n\r\n`);
+}
+
+module.exports.createResponse = (statusCode, contentType, dataMessage='') => {
+	return `HTTP/1.1 ${statusCode}\r\nContent-Type: ${contentType}\r\n\r\n${dataMessage}`;
 }
 
 function getMIME(extension) {
