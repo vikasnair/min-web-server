@@ -3,9 +3,11 @@
 
 const path = require('path');
 
+// could use path.join for this one, but tried a ternary instead
+
 module.exports.getExtension = (fileName) => {
 	return fileName.split('.').length > 1 ? fileName.split('.').pop().toLowerCase() : '';
-}
+};
 
 module.exports.sendTextFile = (fileName, sock, isGET) => {
 	const fs = require('fs');
@@ -34,7 +36,7 @@ module.exports.sendTextFile = (fileName, sock, isGET) => {
 
 		sock.end();
 	});
-}
+};
 
 module.exports.sendImage = (fileName, sock, isGET) => {
 	const fs = require('fs');
@@ -60,15 +62,17 @@ module.exports.sendImage = (fileName, sock, isGET) => {
 
 		sock.end();
 	});
-}
+};
 
-module.exports.createRedirect = (newFile, sock, isGET) => {
+// helper functions
+
+module.exports.createRedirect = (newFile, sock) => {
 	sock.write(`HTTP/1.1 301 Moved Permanently\r\nLocation: ${newFile}\r\n\r\n`);
-}
+};
 
 module.exports.createResponse = (statusCode, contentType, dataMessage='') => {
 	return `HTTP/1.1 ${statusCode}\r\nContent-Type: ${contentType}\r\n\r\n${dataMessage}`;
-}
+};
 
 module.exports.getMIME = (extension) => {
 	const map = {
@@ -84,4 +88,4 @@ module.exports.getMIME = (extension) => {
 	};
 
 	return map[extension] ? map[extension] : '';
-}
+};

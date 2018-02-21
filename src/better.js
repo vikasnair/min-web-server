@@ -4,6 +4,8 @@
 const App = require('./webframework.js').App;
 const app = new App();
 
+// define paths
+
 app.get('/', (req, res) => {
 	res.sendFile('home.html');
 });
@@ -29,6 +31,9 @@ app.get('/image3', (req, res) => {
 });
 
 app.get('/random', (req, res) => {
+
+	// get random image
+
 	const randInt = Math.floor(Math.random() * Math.floor(3)) + 1;
 	let fileName = 'image' + randInt;
 	
@@ -38,23 +43,25 @@ app.get('/random', (req, res) => {
 		case 3: fileName += '.jpg'; break;
 	}
 
+	// feed into string representation html
+
 	const html = "\
 		<!DOCTYPE html>\
 		<html lang='en'>\
-		  <head>\
-		    <meta charset='utf-8'>\
-		    <link rel='stylesheet' href='css/base.css'>\
-		    <title>Dasha Tsenter</title>\
-		  </head>\
-		  <body>\
-		    <h1>Official fan page of NYC Tsenter.</h1>\
-		    <img src='" + fileName + "' style='width:500px;height:auto;'>\
-		    <ol>\
-		    	<li><a href='/random'>Random!</a></li>\
-		      <li><a href='/random'>Rando!</a></li>\
-		      <li><a href='/form'>Form!</a></li>\
-		    </ol>\
-		  </body>\
+		<head>\
+		<meta charset='utf-8'>\
+		<link rel='stylesheet' href='css/base.css'>\
+		<title>Dasha Tsenter</title>\
+		</head>\
+		<body>\
+		<h1>Official fan page of NYC Tsenter.</h1>\
+		<img src='" + fileName + "' style='width:500px;height:auto;'>\
+		<ol>\
+		<li><a href='/random'>Random!</a></li>\
+		<li><a href='/random'>Rando!</a></li>\
+		<li><a href='/form'>Form!</a></li>\
+		</ol>\
+		</body>\
 		</html>\
 	";
 
@@ -70,6 +77,9 @@ app.get('/form', (req, res) => {
 });
 
 app.post('/form', (req, res) => {
+
+	// format data according to post guidelines
+
 	let data = '';
 	req.body.split('&').forEach(pair => {
 		const value = pair.split('=')[1];

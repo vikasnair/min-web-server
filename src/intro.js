@@ -22,7 +22,7 @@ const route = (path, sock, isGET) => {
 		'/picsplz' : (sock) => { util.sendTextFile('picsplz/index.html', sock, isGET); },
 		'/img/animal.jpg' : (sock) => { util.sendImage('img/animal.jpg', sock, isGET); },
 		'/showanimage' : (sock) => {
-			util.createRedirect('/picsplz', sock, isGET);
+			util.createRedirect('/picsplz', sock);
 			routes['/picsplz'](sock);
 		}
 	};
@@ -31,14 +31,14 @@ const route = (path, sock, isGET) => {
 		routes[path](sock);
 	} else {
 		sock.write(util.createResponse('404 Not Found', 'text/plain', 'Server cannot locate resource specified.'));
-		sock.end()
+		sock.end();
 	}
 };
 
 const PORT = 8080;
 const HOST = '127.0.0.1';
 
-const server = net.createServer((sock) =>  {
+const server = net.createServer((sock) => {
 	console.log(`We got a client: ${sock.remoteAddress}:${sock.remotePort}`);
 
 	sock.on('data', (binaryData) => {

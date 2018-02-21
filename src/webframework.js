@@ -14,12 +14,17 @@ const statusCodes = {
 
 module.exports.Request = class Request {
 	constructor(s) {
+
+		// format methods and paths appropriately
+
 		this.method = s.split(' ')[0].toUpperCase();
 		this.path = s.split(' ')[1];
 
 		if (this.path.length > 1 && this.path.slice(-1) === '/') {
 			this.path = this.path.slice(0, -1);
 		}
+
+		// declare and init any headers + body
 
 		const headers = {};
 
@@ -36,6 +41,9 @@ module.exports.Request = class Request {
 	}
 
 	toString() {
+
+		// simple toString, loop through headers and append
+
 		let s = `${this.method} ${this.path} HTTP/1.1\r\n`;
 
 		Object.keys(this.headers).forEach(key => {
@@ -44,10 +52,13 @@ module.exports.Request = class Request {
 
 		return s + '\r\n' + this.body;
 	}
-}
+};
 
 module.exports.Response = class Response {
 	constructor(s) {
+
+		// init socket, empty header + body
+
 		this.sock = s;
 		this.headers = {};
 		this.body = '';
@@ -67,6 +78,9 @@ module.exports.Response = class Response {
 	}
 
 	send(statusCode, body) {
+
+		// use writeHead and end, but still writing in correct order
+
 		this.body = body;
 		
 		this.write(`HTTP/1.1 ${statusCode} ${statusCodes[String(statusCode)]}\r\n`);
@@ -75,6 +89,9 @@ module.exports.Response = class Response {
 	}
 
 	writeHead(statusCode) {
+
+		// loop through headers and write, with appropriate format
+
 		this.statusCode = statusCode;
 		
 		Object.keys(this.headers).forEach(key => {
@@ -85,10 +102,15 @@ module.exports.Response = class Response {
 	}
 
 	redirect(statusCode, url) {
+
+		// if only one argument is given, assign correctly
+
 		if (arguments.length === 1) {
 			url = statusCode;
 			statusCode = 301;
 		}
+
+		// send redirect
 
 		this.statusCode = statusCode;
 		this.setHeader('Location', url);
@@ -106,13 +128,20 @@ module.exports.Response = class Response {
 	}
 
 	sendFile(fileName) {
+
+		// using prev helper functions for extension, contenttype
+
 		const util = require('./webutils.js');
 		const path = require('path');
 		const fs = require('fs');
 
+		// get ext, content type
+
 		const filePath = path.join(__dirname, '..', 'public', fileName);
 		const ext = util.getExtension(fileName);
 		const contentType = util.getMIME(ext);
+
+		// check type and read w/ appropriate params to interpret data correctly
 
 		if (['html', 'css', 'txt'].includes(ext)) {
 			fs.readFile(filePath, 'utf8', (error, data) => { this.handleRead(contentType, error, data); });
@@ -124,6 +153,9 @@ module.exports.Response = class Response {
 	}
 
 	handleRead(contentType, err, data) {
+
+		// callback for readfile, set content type here and send data
+
 		this.setHeader('Content-Type', contentType);
 
 		if (err) {
@@ -132,10 +164,13 @@ module.exports.Response = class Response {
 			this.send(200, data);
 		}
 	}
-}
+};
 
 module.exports.App = class App {
 	constructor() {
+
+		// init server, empty routes
+
 		const net = require('net');
 		this.server = net.createServer(this.handleConnection.bind(this));
 		this.routes = {};
@@ -158,15 +193,25 @@ module.exports.App = class App {
 	}
 
 	handleRequestData(sock, binaryData) {
+
+		// callback for socket.on('data' ...)
+		// instantiate request, response objects with data
+
 		const strData = binaryData + '';
 		const req = new module.exports.Request(strData);
 		const res = new module.exports.Response(sock);
 
+		// set callback for socket.on('end' ...)
+
 		sock.on('end', this.logResponse.bind(this, req, res));
+
+		// check if host exists for valid request
 
 		if (!req.headers.hasOwnProperty('Host')) {
 			return res.send(400, 'Invalid request.');
 		}
+
+		// if exists, then check if valid route (resource available)
 
 		if (this.routes.hasOwnProperty(`${req.method} ${req.path}`)) {
 			this.routes[`${req.method} ${req.path}`](req, res);
@@ -177,7 +222,7 @@ module.exports.App = class App {
 	}
 
 	logResponse(req, res) {
-		// console.log(`${req.toString()}\r\n${res.toString()}\r\n`);
-		console.log(req.toString());
+		console.log(`${req.toString()}\r\n${res.toString()}\r\n`);
+		// console.log(req.toString());
 	}
-}
+};
