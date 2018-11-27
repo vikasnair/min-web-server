@@ -4,8 +4,6 @@
 const util = require('./webutils.js');
 const net = require('net');
 
-// helper class, lifted from example
-
 class Request {
 	constructor(s) {
 		this.method = s.split(' ')[0];
@@ -17,13 +15,13 @@ class Request {
 const route = (path, sock, isGET) => {
 	const routes = {
 		'/' : (sock) => { util.sendTextFile('index.html', sock, isGET); },
-		'/such/stylish' : (sock) => { util.sendTextFile('such/stylish/index.html', sock, isGET); },
+		'/more/styles' : (sock) => { util.sendTextFile('more/styles/index.html', sock, isGET); },
 		'/css/base.css' : (sock) => { util.sendTextFile('css/base.css', sock, isGET); },
-		'/picsplz' : (sock) => { util.sendTextFile('picsplz/index.html', sock, isGET); },
+		'/pics' : (sock) => { util.sendTextFile('pics/index.html', sock, isGET); },
 		'/img/animal.jpg' : (sock) => { util.sendImage('img/animal.jpg', sock, isGET); },
 		'/showanimage' : (sock) => {
-			util.createRedirect('/picsplz', sock);
-			routes['/picsplz'](sock);
+			util.createRedirect('/pics', sock);
+			routes['/pics'](sock);
 		}
 	};
 
@@ -43,7 +41,6 @@ const server = net.createServer((sock) => {
 
 	sock.on('data', (binaryData) => {
 		const strData = binaryData + '';
-		console.log("HI", strData);
 		const req = new Request(strData);
 
 		console.log(`Path: ${req.path}`);

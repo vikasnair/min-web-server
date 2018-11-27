@@ -51,10 +51,10 @@ app.get('/random', (req, res) => {
 		<head>\
 		<meta charset='utf-8'>\
 		<link rel='stylesheet' href='css/base.css'>\
-		<title>Dasha Tsenter</title>\
+		<title>Hello, world!</title>\
 		</head>\
 		<body>\
-		<h1>Official fan page of NYC Tsenter.</h1>\
+		<h1>Hello, world!</h1>\
 		<img src='" + fileName + "' style='width:500px;height:auto;'>\
 		<ol>\
 		<li><a href='/random'>Random!</a></li>\
